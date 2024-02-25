@@ -14,8 +14,11 @@ type Note struct {
 }
 
 var (
-	PORT  string = ":5000"
-	notes []string
+	PORT     string = ":5000"
+	notes    []string
+	dirname  string = "./notes"
+	filename string = "data.txt"
+	filepath string = dirname + "/" + filename
 )
 
 func main() {
@@ -36,13 +39,23 @@ func addNote(w http.ResponseWriter, r *http.Request) {
 	}
 	if _, err := os.Stat("notes"); os.IsNotExist(err) {
 		fmt.Println("Directory does not exist")
-		err := os.Mkdir("notes/", 0755)
+		err := os.Mkdir(dirname, 0755)
 		if err != nil {
 			fmt.Println(err)
 		}
 		fmt.Println("Directory Created Successfully")
-	} else {
-		fmt.Println("Directory exists")
+	}
+	file, fileError := os.OpenFile(filepath, os.O_APPEND|os.O_CREATE, 0644)
+	if fileError != nil {
+		fmt.Println(fileError)
+	}
+	noteJson, err := json.Marshal(note)
+	if err != nil {
+		fmt.Println(err)
+	}
+	_, err = file.Write(noteJson)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
 	}
 }
 func getAllNotes(w http.ResponseWriter, r *http.Request) {
