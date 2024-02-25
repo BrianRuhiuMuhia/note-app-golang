@@ -5,9 +5,7 @@ subBtn.addEventListener("click",function(event){
     event.preventDefault()
     dataObj["title"]=document.querySelector(".input-title").value
     dataObj["body"]=document.querySelector(".input-body").value
-    sendToServer(dataObj).then(()=>{
-        console.log(`${dataObj} sent to server`)
-    })
+    sendToServer(dataObj)
 })
 async function sendToServer(data){
     const options={

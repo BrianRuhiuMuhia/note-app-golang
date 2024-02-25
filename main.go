@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 )
 
 type Note struct {
@@ -13,7 +14,8 @@ type Note struct {
 }
 
 var (
-	PORT string = ":5000"
+	PORT  string = ":5000"
+	notes []string
 )
 
 func main() {
@@ -32,5 +34,21 @@ func addNote(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Fprintf(w, "err: %+v\n", err)
 	}
-
+	if _, err := os.Stat("notes"); os.IsNotExist(err) {
+		fmt.Println("Directory does not exist")
+		err := os.Mkdir("notes/", 0755)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println("Directory Created Successfully")
+	} else {
+		fmt.Println("Directory exists")
+	}
+}
+func getAllNotes(w http.ResponseWriter, r *http.Request) {
+	if _, err := os.Stat("notes"); os.IsNotExist(err) {
+		fmt.Println("Directory does not exist")
+	} else {
+		fmt.Println("Directory exists")
+	}
 }
