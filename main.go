@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -17,13 +18,15 @@ var (
 	PORT     string = ":5000"
 	notes    []string
 	dirname  string = "./notes"
-	filename string = "data.txt"
+	filename string = "data.json"
 	filepath string = dirname + "/" + filename
+	file     *os.File
 )
 
 func main() {
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("./static"))))
 	http.HandleFunc("/addnote", addNote)
+	http.HandleFunc("/getallnotes", getAllNotes)
 	fmt.Println("server running on port, ", PORT)
 	http.ListenAndServe(PORT, nil)
 }
@@ -57,11 +60,28 @@ func addNote(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Error writing to file:", err)
 	}
+	defer file.Close()
 }
 func getAllNotes(w http.ResponseWriter, r *http.Request) {
 	if _, err := os.Stat("notes"); os.IsNotExist(err) {
 		fmt.Println("Directory does not exist")
-	} else {
-		fmt.Println("Directory exists")
+		fmt.Fprintf(w, "server error directory does not exist")
 	}
+	file, err := os.OpenFile(filepath, os.O_RDONLY, 0644)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Fprintf(w, "There was an error")
+	}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		note, err := json.Marshal(scanner.Text())
+		if err != nil {
+			fmt.Println("there was an error line 79")
+		}
+		notes = append(notes, string(note))
+		for _, note := range notes {
+			fmt.Fprintf(w, note)
+		}
+	}
+
 }
